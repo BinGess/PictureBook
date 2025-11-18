@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>页面管理</title></head>
+<body>
+<h1>页面管理：{{.book.Title}}</h1>
+<div>
+  <h2>已发布页面</h2>
+  <ul>
+    {{range .book.Pages}}
+      <li>#{{.Index}} <img src="{{.ImageURL}}" alt="page" style="height:80px"></li>
+    {{end}}
+  </ul>
+</div>
+<div>
+  <h2>上传图片</h2>
+  <form method="post" action="/v1/admin/upload" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <button type="submit">上传</button>
+  </form>
+  <p>上传成功后将返回图片URL，随后可调用接口或未来在此页面创建页面记录。</p>
+</div>
+<a href="/admin/books">返回列表</a>
+</body></html>

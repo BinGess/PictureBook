@@ -1,0 +1,32 @@
+[
+  {
+    "id": "book_a",
+    "title": "森林探险",
+    "coverURL": "cover_a",
+    "ageMin": 3,
+    "ageMax": 6,
+    "tags": ["森林","动物"],
+    "popularityScore": 0.82,
+    "themeKeywords": ["自然","探险"],
+    "isEditorPick": true,
+    "pages": [
+      {"id":"A-0","index":0,"imageURL":null,"localName":"a_0"},
+      {"id":"A-1","index":1,"imageURL":null,"localName":"a_1"}
+    ]
+  },
+  {
+    "id": "book_b",
+    "title": "海洋之旅",
+    "coverURL": "cover_b",
+    "ageMin": 5,
+    "ageMax": 9,
+    "tags": ["海洋","旅行"],
+    "popularityScore": 0.74,
+    "themeKeywords": ["自然","探索"],
+    "isEditorPick": true,
+    "pages": [
+      {"id":"B-0","index":0,"imageURL":null,"localName":"b_0"},
+      {"id":"B-1","index":1,"imageURL":null,"localName":"b_1"}
+    ]
+  }
+]

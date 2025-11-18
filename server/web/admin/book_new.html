@@ -6,7 +6,15 @@
 <form method="post" action="/admin/books/new">
   <label>ID<input name="id" required></label><br>
   <label>标题<input name="title" required></label><br>
-  <label>封面URL<input name="coverURL"></label><br>
+  <label>封面URL<input id="coverURL" name="coverURL"></label><br>
+  <div>
+    <label>上传封面<input id="coverFile" type="file" name="file"></label>
+    <button id="uploadCoverBtn" type="button">上传封面并填充URL</button>
+    <div id="coverProgress" style="height:6px;background:#eee;border-radius:4px;width:240px;display:inline-block;margin-left:8px;vertical-align:middle;">
+      <div id="coverBar" style="height:100%;width:0%;background:#4a90e2;border-radius:4px;"></div>
+    </div>
+    <span id="coverStatus" style="margin-left:8px;">0%</span>
+  </div>
   <label>适龄最小<input name="ageMin" value="3"></label><br>
   <label>适龄最大<input name="ageMax" value="10"></label><br>
   <label>标签(逗号分隔)<input name="tags"></label><br>
@@ -16,4 +24,39 @@
   <button type="submit">创建</button>
   <a href="/admin/books">返回列表</a>
   </form>
+
+<script>
+  (function(){
+    const btn = document.getElementById('uploadCoverBtn');
+    const fileInput = document.getElementById('coverFile');
+    const bar = document.getElementById('coverBar');
+    const status = document.getElementById('coverStatus');
+    const coverURL = document.getElementById('coverURL');
+    btn.addEventListener('click', function(){
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) { alert('请选择封面图片'); return; }
+      const fd = new FormData();
+      fd.append('file', f, f.name);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/v1/admin/upload');
+      xhr.upload.onprogress = function(evt){
+        if (evt.lengthComputable) {
+          const p = Math.round((evt.loaded / evt.total) * 100);
+          bar.style.width = p + '%';
+          status.textContent = p + '%';
+        }
+      };
+      xhr.onload = function(){
+        if (xhr.status === 200) {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            if (res.file_url) { coverURL.value = res.file_url; status.textContent = '完成'; }
+          } catch(e){ status.textContent = '失败'; }
+        } else { status.textContent = '失败'; }
+      };
+      xhr.onerror = function(){ status.textContent = '失败'; };
+      xhr.send(fd);
+    });
+  })();
+</script>
 </body></html>

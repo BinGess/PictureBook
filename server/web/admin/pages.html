@@ -12,10 +12,11 @@
 </div>
 <div>
   <h2>批量上传图片</h2>
-  <form method="post" action="/v1/admin/books/{{.book.ID}}/pages/upload" enctype="multipart/form-data">
-    <input type="file" name="files" multiple>
-    <button type="submit">上传</button>
+  <form id="uploadForm" method="post" action="/v1/admin/books/{{.book.ID}}/pages/upload" enctype="multipart/form-data">
+    <input id="filesInput" type="file" name="files" multiple>
+    <button id="uploadBtn" type="submit">上传</button>
   </form>
+  <div id="uploadList"></div>
   <p>上传成功后会直接生成页面并显示在上方列表。</p>
 </div>
 
@@ -37,5 +38,67 @@
     <button type="submit">保存顺序</button>
   </form>
 </div>
+
+<script>
+  (function(){
+    const form = document.getElementById('uploadForm');
+    const input = document.getElementById('filesInput');
+    const list = document.getElementById('uploadList');
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const files = input.files;
+      if (!files || files.length === 0) return;
+      list.innerHTML = '';
+      let completed = 0;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const row = document.createElement('div');
+        row.style.margin = '8px 0';
+        row.textContent = file.name + ' ';
+        const barWrap = document.createElement('div');
+        barWrap.style.height = '6px';
+        barWrap.style.background = '#eee';
+        barWrap.style.borderRadius = '4px';
+        barWrap.style.width = '240px';
+        barWrap.style.display = 'inline-block';
+        barWrap.style.marginLeft = '8px';
+        const bar = document.createElement('div');
+        bar.style.height = '100%';
+        bar.style.width = '0%';
+        bar.style.background = '#4a90e2';
+        bar.style.borderRadius = '4px';
+        barWrap.appendChild(bar);
+        const status = document.createElement('span');
+        status.style.marginLeft = '8px';
+        status.textContent = '0%';
+        row.appendChild(barWrap);
+        row.appendChild(status);
+        list.appendChild(row);
+        const fd = new FormData();
+        fd.append('files', file, file.name);
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', form.action);
+        xhr.upload.onprogress = function(evt){
+          if (evt.lengthComputable) {
+            const p = Math.round((evt.loaded / evt.total) * 100);
+            bar.style.width = p + '%';
+            status.textContent = p + '%';
+          }
+        };
+        xhr.onload = function(){
+          status.textContent = xhr.status === 200 ? '完成' : '失败';
+          if (xhr.status === 200) {
+            completed++;
+            if (completed === files.length) {
+              setTimeout(function(){ location.reload(); }, 500);
+            }
+          }
+        };
+        xhr.onerror = function(){ status.textContent = '失败'; };
+        xhr.send(fd);
+      }
+    });
+  })();
+</script>
 <a href="/admin/books">返回列表</a>
 </body></html>

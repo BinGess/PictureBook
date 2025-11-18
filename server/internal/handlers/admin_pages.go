@@ -2,7 +2,6 @@ package handlers
 
 import (
     "net/http"
-    "strconv"
     "github.com/gin-gonic/gin"
     "picturebook/server/internal/models"
     "picturebook/server/internal/services"

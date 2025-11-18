@@ -59,6 +59,3 @@ func (h *PublicHandler) Recommend(c *gin.Context) {
     rec := services.Recommend(b, all, age, limit)
     c.JSON(http.StatusOK, rec)
 }
-
-func atoi(s string) int { i, _ := strconv.Atoi(s); return i }
-func atoiDefault(s string, d int) int { if s == "" { return d }; i, err := strconv.Atoi(s); if err != nil { return d }; return i }

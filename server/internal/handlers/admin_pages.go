@@ -59,22 +59,3 @@ func (h *AdminPages) PagesOfBook(c *gin.Context) {
     if !ok { c.String(http.StatusNotFound, "not_found"); return }
     c.HTML(http.StatusOK, "pages.html", gin.H{"book": b})
 }
-
-func splitCSV(s string) []string {
-    out := []string{}
-    cur := ""
-    for i := 0; i < len(s); i++ {
-        ch := s[i]
-        if ch == ',' {
-            if cur != "" { out = append(out, cur) }
-            cur = ""
-        } else {
-            cur += string(ch)
-        }
-    }
-    if cur != "" { out = append(out, cur) }
-    return out
-}
-
-func atoiDefault(s string, d int) int { if s == "" { return d }; i, err := strconv.Atoi(s); if err != nil { return d }; return i }
-func atofDefault(s string, d float64) float64 { f, err := strconv.ParseFloat(s, 64); if err != nil { return d }; return f }

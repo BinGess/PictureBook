@@ -1,8 +1,8 @@
 FROM golang:1.21-alpine AS build
 WORKDIR /app
-COPY go.mod .
-RUN go env -w GOPROXY=https://proxy.golang.org,direct && go mod download
 COPY . .
+RUN go env -w GOPROXY=https://proxy.golang.org,direct
+RUN go mod tidy
 RUN go build -o server ./cmd/server
 
 FROM alpine:3.19

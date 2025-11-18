@@ -26,6 +26,8 @@ func main() {
     admin := handlers.NewAdminHandler(content)
     v1.POST("/admin/books", admin.CreateBook)
     v1.POST("/admin/upload", handlers.Upload)
+    pa := handlers.NewPagesAPI(content)
+    v1.POST("/admin/books/:id/pages/upload", pa.UploadToBook)
     ap := handlers.NewAdminPages(content)
     r.GET("/admin/login", ap.LoginPage)
     r.POST("/admin/login", ap.Login)
@@ -35,6 +37,7 @@ func main() {
     adminGroup.GET("/books/new", ap.NewBookPage)
     adminGroup.POST("/books/new", ap.CreateBook)
     adminGroup.GET("/books/:id/pages", ap.PagesOfBook)
+    adminGroup.POST("/books/:id/pages/reorder", pa.Reorder)
     r.Run()
 }
 

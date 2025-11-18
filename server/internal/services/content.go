@@ -72,3 +72,41 @@ func (s *ContentService) AddBook(b models.Book) {
     defer s.mu.Unlock()
     s.books = append(s.books, b)
 }
+
+func (s *ContentService) AddPages(bookID string, fileURLs []string) []models.Page {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    var created []models.Page
+    for i := range s.books {
+        if s.books[i].ID == bookID {
+            start := len(s.books[i].Pages)
+            for idx, url := range fileURLs {
+                p := models.Page{ID: bookID + "-p-" + itoa(start+idx), Index: start + idx, ImageURL: url, Duration: nil}
+                s.books[i].Pages = append(s.books[i].Pages, p)
+                created = append(created, p)
+            }
+            return created
+        }
+    }
+    return created
+}
+
+func (s *ContentService) ReorderPages(bookID string, indexByID map[string]int) []models.Page {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    for i := range s.books {
+        if s.books[i].ID == bookID {
+            for j := range s.books[i].Pages {
+                id := s.books[i].Pages[j].ID
+                if newIdx, ok := indexByID[id]; ok {
+                    s.books[i].Pages[j].Index = newIdx
+                }
+            }
+            pages := s.books[i].Pages
+            sortPages(pages)
+            s.books[i].Pages = pages
+            return pages
+        }
+    }
+    return nil
+}

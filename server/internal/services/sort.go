@@ -37,3 +37,7 @@ func sortBooks(items []models.Book, age int, sortBy string, themeOpt ...[]string
         }
     })
 }
+
+func sortPages(items []models.Page) {
+    sort.Slice(items, func(i, j int) bool { return items[i].Index < items[j].Index })
+}

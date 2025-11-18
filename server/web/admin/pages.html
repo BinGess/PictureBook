@@ -11,12 +11,31 @@
   </ul>
 </div>
 <div>
-  <h2>上传图片</h2>
-  <form method="post" action="/v1/admin/upload" enctype="multipart/form-data">
-    <input type="file" name="file">
+  <h2>批量上传图片</h2>
+  <form method="post" action="/v1/admin/books/{{.book.ID}}/pages/upload" enctype="multipart/form-data">
+    <input type="file" name="files" multiple>
     <button type="submit">上传</button>
   </form>
-  <p>上传成功后将返回图片URL，随后可调用接口或未来在此页面创建页面记录。</p>
+  <p>上传成功后会直接生成页面并显示在上方列表。</p>
+</div>
+
+<div>
+  <h2>编辑顺序</h2>
+  <form method="post" action="/admin/books/{{.book.ID}}/pages/reorder">
+    <table border="1" cellpadding="6" cellspacing="0">
+      <tr><th>页面ID</th><th>缩略图</th><th>当前顺序</th></tr>
+      {{range .book.Pages}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td><img src="{{.ImageURL}}" alt="page" style="height:80px"></td>
+        <td>
+          <input type="number" name="index[{{.ID}}]" value="{{.Index}}" style="width:60px">
+        </td>
+      </tr>
+      {{end}}
+    </table>
+    <button type="submit">保存顺序</button>
+  </form>
 </div>
 <a href="/admin/books">返回列表</a>
 </body></html>

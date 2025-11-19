@@ -12,7 +12,7 @@ func Upload(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "missing_file"})
         return
     }
-    dir := "uploads"
+    dir := uploadsDir()
     name := filepath.Base(file.Filename)
     dst := filepath.Join(dir, name)
     if err := c.SaveUploadedFile(file, dst); err != nil {

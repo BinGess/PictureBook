@@ -124,4 +124,55 @@ func (r *Repo) ReorderPages(bookID string, indexByID map[string]int) error {
     return nil
 }
 
+func (r *Repo) DeleteBook(id string) error {
+    _, err := r.DB.Exec("DELETE FROM books WHERE id=?", id)
+    return err
+}
+
+func (r *Repo) UpdateBook(b models.Book) error {
+    tags, _ := json.Marshal(b.Tags)
+    themes, _ := json.Marshal(b.ThemeKeywords)
+    _, err := r.DB.Exec("UPDATE books SET title=?, cover_url=?, age_min=?, age_max=?, tags=?, popularity_score=?, theme_keywords=?, status=? WHERE id=?",
+        b.Title, b.CoverURL, b.AgeMin, b.AgeMax, string(tags), b.PopularityScore, string(themes), b.Status, b.ID,
+    )
+    return err
+}
+
+func (r *Repo) ListBooksAdmin(sortBy string, page, pageSize int, q string) ([]models.Book, bool, error) {
+    base := "SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status FROM books"
+    where := ""
+    args := []any{}
+    if q != "" {
+        where = " WHERE title LIKE ? OR id LIKE ?"
+        like := "%" + q + "%"
+        args = append(args, like, like)
+    }
+    order := " ORDER BY popularity_score DESC"
+    if sortBy == "title" { order = " ORDER BY title ASC" }
+    limit := " LIMIT ? OFFSET ?"
+    args = append(args, pageSize, (page-1)*pageSize)
+    rows, err := r.DB.Query(base+where+order+limit, args...)
+    if err != nil { return nil, false, err }
+    defer rows.Close()
+    var res []models.Book
+    for rows.Next() {
+        var b models.Book
+        var tags, themes string
+        var pick int
+        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status); err != nil { return nil, false, err }
+        _ = json.Unmarshal([]byte(tags), &b.Tags)
+        _ = json.Unmarshal([]byte(themes), &b.ThemeKeywords)
+        b.IsEditorPick = pick == 1
+        res = append(res, b)
+    }
+    var total int
+    if q != "" {
+        _ = r.DB.QueryRow("SELECT COUNT(1) FROM books WHERE title LIKE ? OR id LIKE ?", "%"+q+"%", "%"+q+"%").Scan(&total)
+    } else {
+        _ = r.DB.QueryRow("SELECT COUNT(1) FROM books").Scan(&total)
+    }
+    hasMore := page*pageSize < total
+    return res, hasMore, nil
+}
+
 func boolToInt(b bool) int { if b { return 1 } ; return 0 }

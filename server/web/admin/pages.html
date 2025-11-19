@@ -1,51 +1,76 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>页面管理</title></head>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>页面管理</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
 <body>
-<h1>页面管理：{{.book.Title}}</h1>
+<div class="nav">
+  <a href="/admin/books">管理后台</a>
+  <div class="spacer"></div>
+  <a href="/admin/books" class="btn small">返回列表</a>
+</div>
+<div class="container">
+<div class="card">
+<h2 class="title">页面管理：{{.book.Title}}</h2>
+<div class="row wrap" style="margin-bottom:12px;">
+  <div>
+    {{if .book.CoverURL}}<img class="thumb" style="width:160px;height:120px;" src="{{.book.CoverURL}}" alt="cover">{{else}}<span class="muted">无封面</span>{{end}}
+  </div>
+  <div class="actions">
+    <a class="btn small" href="/admin/books/{{.book.ID}}/edit">编辑元数据</a>
+  </div>
+</div>
 <div>
   <form method="post" action="/admin/books/{{.book.ID}}/editor-pick">
     <label>
       <input type="checkbox" name="isEditorPick" {{if .book.IsEditorPick}}checked{{end}}> 设为编辑推荐（最多5本）
     </label>
-    <button type="submit">保存</button>
-    {{if .error}}<span style="color:red;">编辑推荐已达上限</span>{{end}}
+    <button class="btn primary" type="submit">保存</button>
+    {{if .error}}<span class="muted" style="color:#dc2626;">编辑推荐已达上限</span>{{end}}
   </form>
   <hr>
 </div>
 <div>
-  <h2>已发布页面</h2>
-  <ul>
+  <h3 class="title" style="font-size:18px;">已发布页面</h3>
+  <table>
+    <tr><th>#</th><th>缩略图</th><th>图片URL</th></tr>
     {{range .book.Pages}}
-      <li>#{{.Index}} <img src="{{.ImageURL}}" alt="page" style="height:80px"></li>
+    <tr>
+      <td>{{.Index}}</td>
+      <td><img class="thumb" src="{{.ImageURL}}" alt="page"></td>
+      <td class="muted">{{.ImageURL}}</td>
+    </tr>
     {{end}}
-  </ul>
+  </table>
 </div>
 <div>
-  <h2>批量上传图片</h2>
+  <h3 class="title" style="font-size:18px;">批量上传图片</h3>
   <form id="uploadForm" method="post" action="/v1/admin/books/{{.book.ID}}/pages/upload" enctype="multipart/form-data">
     <input id="filesInput" type="file" name="files" multiple>
-    <button id="uploadBtn" type="submit">上传</button>
+    <button id="uploadBtn" class="btn" type="submit">上传</button>
   </form>
   <div id="uploadList"></div>
   <p>上传成功后会直接生成页面并显示在上方列表。</p>
 </div>
 
 <div>
-  <h2>编辑顺序</h2>
+  <h3 class="title" style="font-size:18px;">编辑顺序</h3>
   <form method="post" action="/admin/books/{{.book.ID}}/pages/reorder">
-    <table border="1" cellpadding="6" cellspacing="0">
+    <table>
       <tr><th>页面ID</th><th>缩略图</th><th>当前顺序</th></tr>
       {{range .book.Pages}}
       <tr>
         <td>{{.ID}}</td>
-        <td><img src="{{.ImageURL}}" alt="page" style="height:80px"></td>
+        <td><img class="thumb" src="{{.ImageURL}}" alt="page"></td>
         <td>
-          <input type="number" name="index[{{.ID}}]" value="{{.Index}}" style="width:60px">
+          <input class="input" type="number" name="index[{{.ID}}]" value="{{.Index}}" style="width:80px">
         </td>
       </tr>
       {{end}}
     </table>
-    <button type="submit">保存顺序</button>
+    <button class="btn primary" type="submit">保存顺序</button>
   </form>
 </div>
 
@@ -110,5 +135,6 @@
     });
   })();
 </script>
-<a href="/admin/books">返回列表</a>
+</div>
+</div>
 </body></html>

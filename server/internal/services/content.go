@@ -70,3 +70,17 @@ func (s *ContentService) SetEditorPick(bookID string, v bool) error {
     if err := s.repo.SetEditorPick(bookID, v); err != nil { return err }
     return nil
 }
+
+func (s *ContentService) DeleteBook(id string) error {
+    return s.repo.DeleteBook(id)
+}
+
+func (s *ContentService) UpdateBook(b models.Book) error {
+    return s.repo.UpdateBook(b)
+}
+
+func (s *ContentService) ListBooksAdmin(sort string, page, pageSize int, q string) ([]models.Book, bool) {
+    items, more, err := s.repo.ListBooksAdmin(sort, page, pageSize, q)
+    if err != nil { return []models.Book{}, false }
+    return items, more
+}

@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>编辑书籍</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="nav">
+    <a href="/admin/books">管理后台</a>
+    <div class="spacer"></div>
+    <a href="/admin/books" class="btn small">返回列表</a>
+    <a href="/admin/books/{{.book.ID}}/pages" class="btn small">页面管理</a>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h2 class="title">编辑书籍：{{.book.Title}}</h2>
+      <div class="row wrap" style="margin-bottom:16px;">
+        <div>
+          {{if .book.CoverURL}}<img class="thumb" style="width:160px;height:120px;" src="{{.book.CoverURL}}" alt="cover">{{else}}<span class="muted">无封面</span>{{end}}
+        </div>
+      </div>
+      <form method="post" action="/admin/books/{{.book.ID}}/edit">
+        <div class="grid">
+          <div>
+            <div class="field"><div class="label">标题</div><input class="input" name="title" value="{{.book.Title}}"></div>
+            <div class="field"><div class="label">封面URL</div><input class="input" id="coverURL" name="coverURL" value="{{.book.CoverURL}}"></div>
+            <div class="field row">
+              <label class="btn small">上传封面<input id="coverFile" type="file" name="file" style="display:none"></label>
+              <button id="uploadCoverBtn" type="button" class="btn small">上传并填充URL</button>
+              <div id="coverProgress" class="progress"><div id="coverBar" class="bar"></div></div>
+              <span id="coverStatus" class="muted" style="margin-left:8px;">0%</span>
+            </div>
+            <div class="row">
+              <div class="field" style="flex:1"><div class="label">适龄最小</div><input class="input" name="ageMin" value="{{.book.AgeMin}}"></div>
+              <div class="field" style="flex:1"><div class="label">适龄最大</div><input class="input" name="ageMax" value="{{.book.AgeMax}}"></div>
+            </div>
+            <div class="field"><div class="label">标签(逗号分隔)</div><input class="input" name="tags" value="{{range $i, $t := .book.Tags}}{{if $i}},{{end}}{{$t}}{{end}}"></div>
+            <div class="field"><div class="label">主题(逗号分隔)</div><input class="input" name="themeKeywords" value="{{range $i, $t := .book.ThemeKeywords}}{{if $i}},{{end}}{{$t}}{{end}}"></div>
+            <div class="row">
+              <div class="field" style="flex:1"><div class="label">热门度</div><input class="input" name="popularityScore" value="{{.book.PopularityScore}}"></div>
+              <div class="field" style="flex:1"><div class="label">状态</div>
+                <select class="input" name="status">
+                  <option value="draft" {{if eq .book.Status "draft"}}selected{{end}}>草稿</option>
+                  <option value="published" {{if eq .book.Status "published"}}selected{{end}}>已发布</option>
+                </select>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" type="submit">保存</button>
+              <a class="btn" href="/admin/books/{{.book.ID}}/pages">取消</a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const btn = document.getElementById('uploadCoverBtn');
+      const fileInput = document.getElementById('coverFile');
+      const bar = document.getElementById('coverBar');
+      const status = document.getElementById('coverStatus');
+      const coverURL = document.getElementById('coverURL');
+      if (btn) {
+        btn.addEventListener('click', function(){
+          const f = fileInput.files && fileInput.files[0];
+          if (!f) { alert('请选择封面图片'); return; }
+          const fd = new FormData();
+          fd.append('file', f, f.name);
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/v1/admin/upload');
+          xhr.upload.onprogress = function(evt){
+            if (evt.lengthComputable) {
+              const p = Math.round((evt.loaded / evt.total) * 100);
+              bar.style.width = p + '%';
+              status.textContent = p + '%';
+            }
+          };
+          xhr.onload = function(){
+            if (xhr.status === 200) {
+              try { const res = JSON.parse(xhr.responseText); if (res.file_url) { coverURL.value = res.file_url; status.textContent = '完成'; } }
+              catch(e){ status.textContent = '失败'; }
+            } else { status.textContent = '失败'; }
+          };
+          xhr.onerror = function(){ status.textContent = '失败'; };
+          xhr.send(fd);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

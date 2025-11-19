@@ -1,29 +1,50 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>新建书籍</title></head>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>新建书籍</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
 <body>
-<h1>新建书籍</h1>
-{{if .error}}<div style="color:red;">编辑推荐已达上限</div>{{end}}
-<form method="post" action="/admin/books/new">
-  <label>ID<input name="id" required></label><br>
-  <label>标题<input name="title" required></label><br>
-  <label>封面URL<input id="coverURL" name="coverURL"></label><br>
-  <div>
-    <label>上传封面<input id="coverFile" type="file" name="file"></label>
-    <button id="uploadCoverBtn" type="button">上传封面并填充URL</button>
-    <div id="coverProgress" style="height:6px;background:#eee;border-radius:4px;width:240px;display:inline-block;margin-left:8px;vertical-align:middle;">
-      <div id="coverBar" style="height:100%;width:0%;background:#4a90e2;border-radius:4px;"></div>
-    </div>
-    <span id="coverStatus" style="margin-left:8px;">0%</span>
+  <div class="nav">
+    <a href="/admin/books">管理后台</a>
+    <div class="spacer"></div>
+    <a href="/admin/books" class="btn small">返回列表</a>
   </div>
-  <label>适龄最小<input name="ageMin" value="3"></label><br>
-  <label>适龄最大<input name="ageMax" value="10"></label><br>
-  <label>标签(逗号分隔)<input name="tags"></label><br>
-  <label>主题(逗号分隔)<input name="themeKeywords"></label><br>
-  <label>热门度<input name="popularityScore" value="0.5"></label><br>
-  <label>编辑推荐<input type="checkbox" name="isEditorPick"></label><br>
-  <button type="submit">创建</button>
-  <a href="/admin/books">返回列表</a>
-  </form>
+  <div class="container">
+    <div class="card">
+      <h2 class="title">新建书籍</h2>
+      {{if .error}}<div class="muted" style="color:#dc2626;">编辑推荐已达上限</div>{{end}}
+      <form method="post" action="/admin/books/new">
+        <div class="grid">
+          <div>
+            <div class="field"><div class="label">ID</div><input class="input" name="id" required></div>
+            <div class="field"><div class="label">标题</div><input class="input" name="title" required></div>
+            <div class="field"><div class="label">封面URL</div><input class="input" id="coverURL" name="coverURL"></div>
+            <div class="field row">
+              <label class="btn small">上传封面<input id="coverFile" type="file" name="file" style="display:none"></label>
+              <button id="uploadCoverBtn" type="button" class="btn small">上传并填充URL</button>
+              <div id="coverProgress" class="progress"><div id="coverBar" class="bar"></div></div>
+              <span id="coverStatus" class="muted" style="margin-left:8px;">0%</span>
+            </div>
+            <div class="row">
+              <div class="field" style="flex:1"><div class="label">适龄最小</div><input class="input" name="ageMin" value="3"></div>
+              <div class="field" style="flex:1"><div class="label">适龄最大</div><input class="input" name="ageMax" value="10"></div>
+            </div>
+            <div class="field"><div class="label">标签(逗号分隔)</div><input class="input" name="tags"></div>
+            <div class="field"><div class="label">主题(逗号分隔)</div><input class="input" name="themeKeywords"></div>
+            <div class="row">
+              <div class="field" style="flex:1"><div class="label">热门度</div><input class="input" name="popularityScore" value="0.5"></div>
+              <div class="field" style="flex:1"><label class="label">编辑推荐</label><input type="checkbox" name="isEditorPick"></div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" type="submit">创建</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
 <script>
   (function(){

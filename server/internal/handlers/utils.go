@@ -1,6 +1,9 @@
 package handlers
 
-import "strconv"
+import (
+    "os"
+    "strconv"
+)
 
 func atoi(s string) int { i, _ := strconv.Atoi(s); return i }
 func atoiDefault(s string, d int) int { if s == "" { return d }; i, err := strconv.Atoi(s); if err != nil { return d }; return i }
@@ -19,4 +22,9 @@ func splitCSV(s string) []string {
     }
     if cur != "" { out = append(out, cur) }
     return out
+}
+
+func uploadsDir() string {
+    if v := os.Getenv("UPLOADS_DIR"); v != "" { return v }
+    return "/app/uploads"
 }

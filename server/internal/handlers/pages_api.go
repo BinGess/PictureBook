@@ -26,7 +26,7 @@ func (h *PagesAPI) UploadToBook(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "missing_files"})
         return
     }
-    dir := "uploads"
+    dir := uploadsDir()
     urls := make([]string, 0, len(files))
     for _, f := range files {
         name := filepath.Base(f.Filename)

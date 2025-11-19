@@ -2,6 +2,9 @@ package handlers
 
 import (
     "net/http"
+    "os"
+    "path/filepath"
+    "strings"
     "github.com/gin-gonic/gin"
     "picturebook/server/internal/models"
     "picturebook/server/internal/services"
@@ -27,8 +30,12 @@ func (h *AdminPages) Login(c *gin.Context) {
 }
 
 func (h *AdminPages) BooksList(c *gin.Context) {
-    items, _ := h.content.ListBooks(6, "popular", 1, 1000)
-    c.HTML(http.StatusOK, "books_list.html", gin.H{"items": items})
+    page := atoiDefault(c.Query("page"), 1)
+    size := atoiDefault(c.Query("page_size"), 20)
+    sort := c.DefaultQuery("sort", "popular")
+    q := c.Query("q")
+    items, more := h.content.ListBooksAdmin(sort, page, size, q)
+    c.HTML(http.StatusOK, "books_list.html", gin.H{"items": items, "page": page, "page_size": size, "has_more": more, "sort": sort, "q": q})
 }
 
 func (h *AdminPages) NewBookPage(c *gin.Context) { c.HTML(http.StatusOK, "book_new.html", gin.H{}) }
@@ -66,5 +73,50 @@ func (h *AdminPages) ToggleEditorPick(c *gin.Context) {
         c.HTML(http.StatusBadRequest, "pages.html", gin.H{"error": "editor_picks_limit"})
         return
     }
+    c.Redirect(http.StatusFound, "/admin/books/"+id+"/pages")
+}
+
+func (h *AdminPages) DeleteBook(c *gin.Context) {
+    id := c.Param("id")
+    b, ok := h.content.GetBook(id)
+    if ok {
+        dir := uploadsDir()
+        if b.CoverURL != "" && strings.HasPrefix(b.CoverURL, "/assets/") {
+            name := strings.TrimPrefix(b.CoverURL, "/assets/")
+            _ = os.Remove(filepath.Join(dir, name))
+        }
+        for _, p := range b.Pages {
+            if p.ImageURL != "" && strings.HasPrefix(p.ImageURL, "/assets/") {
+                name := strings.TrimPrefix(p.ImageURL, "/assets/")
+                _ = os.Remove(filepath.Join(dir, name))
+            }
+        }
+    }
+    _ = h.content.DeleteBook(id)
+    c.Redirect(http.StatusFound, "/admin/books")
+}
+
+func (h *AdminPages) EditBookPage(c *gin.Context) {
+    id := c.Param("id")
+    b, ok := h.content.GetBook(id)
+    if !ok { c.String(http.StatusNotFound, "not_found"); return }
+    c.HTML(http.StatusOK, "book_edit.html", gin.H{"book": b})
+}
+
+func (h *AdminPages) EditBook(c *gin.Context) {
+    id := c.Param("id")
+    b, ok := h.content.GetBook(id)
+    if !ok { c.String(http.StatusNotFound, "not_found"); return }
+    title := c.PostForm("title")
+    cover := c.PostForm("coverURL")
+    ageMin := atoiDefault(c.PostForm("ageMin"), b.AgeMin)
+    ageMax := atoiDefault(c.PostForm("ageMax"), b.AgeMax)
+    pop := atofDefault(c.PostForm("popularityScore"), b.PopularityScore)
+    tags := splitCSV(c.PostForm("tags"))
+    themes := splitCSV(c.PostForm("themeKeywords"))
+    status := c.PostForm("status")
+    if status == "" { status = b.Status }
+    nb := models.Book{ID: b.ID, Title: title, CoverURL: cover, AgeMin: ageMin, AgeMax: ageMax, Tags: tags, PopularityScore: pop, ThemeKeywords: themes, IsEditorPick: b.IsEditorPick, Pages: b.Pages, Status: status}
+    _ = h.content.UpdateBook(nb)
     c.Redirect(http.StatusFound, "/admin/books/"+id+"/pages")
 }

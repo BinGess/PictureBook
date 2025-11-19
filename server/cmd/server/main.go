@@ -2,6 +2,7 @@ package main
 
 import (
     "os"
+    "path/filepath"
     "github.com/gin-gonic/gin"
     "picturebook/server/internal/handlers"
     "picturebook/server/internal/middleware"
@@ -15,7 +16,11 @@ func main() {
     r := gin.Default()
     r.Use(middleware.CORS(allowed))
     r.GET("/healthz", func(c *gin.Context) { c.String(200, "ok") })
-    r.Static("/assets", "uploads")
+    up := os.Getenv("UPLOADS_DIR")
+    if up == "" { up = "/app/uploads" }
+    _ = os.MkdirAll(filepath.Clean(up), 0755)
+    r.Static("/assets", up)
+    r.Static("/static", "web/static")
     r.LoadHTMLGlob("web/admin/*.html")
     pub := handlers.NewPublicHandler(content)
     v1 := r.Group("/v1")
@@ -36,9 +41,12 @@ func main() {
     adminGroup.GET("/books", ap.BooksList)
     adminGroup.GET("/books/new", ap.NewBookPage)
     adminGroup.POST("/books/new", ap.CreateBook)
+    adminGroup.GET("/books/:id/edit", ap.EditBookPage)
+    adminGroup.POST("/books/:id/edit", ap.EditBook)
     adminGroup.GET("/books/:id/pages", ap.PagesOfBook)
     adminGroup.POST("/books/:id/pages/reorder", pa.Reorder)
     adminGroup.POST("/books/:id/editor-pick", ap.ToggleEditorPick)
+    adminGroup.POST("/books/:id/delete", ap.DeleteBook)
     r.Run()
 }
 

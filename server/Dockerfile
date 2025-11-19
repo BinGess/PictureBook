@@ -10,6 +10,6 @@ WORKDIR /app
 COPY --from=build /app/server /app/server
 COPY --from=build /app/web /app/web
 ENV CORS_ALLOWED_ORIGINS=*
-RUN mkdir -p /app/uploads
+RUN mkdir -p /app/uploads /app/data
 EXPOSE 8080
 CMD ["/app/server"]

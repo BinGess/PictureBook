@@ -3,6 +3,16 @@
 <body>
 <h1>页面管理：{{.book.Title}}</h1>
 <div>
+  <form method="post" action="/admin/books/{{.book.ID}}/editor-pick">
+    <label>
+      <input type="checkbox" name="isEditorPick" {{if .book.IsEditorPick}}checked{{end}}> 设为编辑推荐（最多5本）
+    </label>
+    <button type="submit">保存</button>
+    {{if .error}}<span style="color:red;">编辑推荐已达上限</span>{{end}}
+  </form>
+  <hr>
+</div>
+<div>
   <h2>已发布页面</h2>
   <ul>
     {{range .book.Pages}}

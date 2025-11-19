@@ -38,6 +38,7 @@ func main() {
     adminGroup.POST("/books/new", ap.CreateBook)
     adminGroup.GET("/books/:id/pages", ap.PagesOfBook)
     adminGroup.POST("/books/:id/pages/reorder", pa.Reorder)
+    adminGroup.POST("/books/:id/editor-pick", ap.ToggleEditorPick)
     r.Run()
 }
 

@@ -43,6 +43,7 @@ func (h *PagesAPI) UploadToBook(c *gin.Context) {
 
 func (h *PagesAPI) Reorder(c *gin.Context) {
     bookID := c.Param("id")
+    _ = c.Request.ParseForm()
     m := map[string]int{}
     for k, v := range c.Request.PostForm {
         if len(k) > 7 && k[:7] == "index[" {

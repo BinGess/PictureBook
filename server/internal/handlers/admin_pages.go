@@ -58,3 +58,13 @@ func (h *AdminPages) PagesOfBook(c *gin.Context) {
     if !ok { c.String(http.StatusNotFound, "not_found"); return }
     c.HTML(http.StatusOK, "pages.html", gin.H{"book": b})
 }
+
+func (h *AdminPages) ToggleEditorPick(c *gin.Context) {
+    id := c.Param("id")
+    v := c.PostForm("isEditorPick") == "on"
+    if err := h.content.SetEditorPick(id, v); err != nil {
+        c.HTML(http.StatusBadRequest, "pages.html", gin.H{"error": "editor_picks_limit"})
+        return
+    }
+    c.Redirect(http.StatusFound, "/admin/books/"+id+"/pages")
+}

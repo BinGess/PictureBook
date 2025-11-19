@@ -12,6 +12,9 @@ struct BookApp: App {
                     }
             }
             .navigationViewStyle(.stack)
+            .onAppear {
+                APIClient.updateBaseURL("https://picturebook.onrender.com")
+            }
             .onReceive(NotificationCenter.default.publisher(for: .navigateToBook)) { note in
                 if let next = note.object as? Book {
                     path.append(next)

@@ -2,9 +2,14 @@ import Foundation
 
 struct APIClient {
     static var baseURL: URL = {
+        if let s = UserDefaults.standard.string(forKey: "APIBaseURL"), let u = URL(string: s) { return u }
         if let urlStr = ProcessInfo.processInfo.environment["BASE_URL"], let url = URL(string: urlStr) { return url }
-        return URL(string: "http://localhost:8080")!
+        return URL(string: "https://picturebook.onrender.com")!
     }()
+
+    static func updateBaseURL(_ s: String) {
+        if let u = URL(string: s) { baseURL = u; UserDefaults.standard.set(s, forKey: "APIBaseURL") }
+    }
 
     static func get<T: Decodable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
         var comps = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
@@ -35,5 +40,10 @@ struct APIClient {
         var q: [URLQueryItem] = [URLQueryItem(name: "limit", value: String(limit))]
         if let age = age { q.append(URLQueryItem(name: "age", value: String(age))) }
         return try await get("/v1/books/\(id)/recommendations", query: q)
+    }
+
+    static func resolveURL(_ pathOrURL: String) -> URL? {
+        if pathOrURL.hasPrefix("http://") || pathOrURL.hasPrefix("https://") { return URL(string: pathOrURL) }
+        return baseURL.appendingPathComponent(pathOrURL)
     }
 }

@@ -5,9 +5,17 @@ struct BookCard: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                Rectangle().fill(Color.gray.opacity(0.2))
-                Text(book.title.prefix(1))
-                    .font(.largeTitle).bold()
+                Rectangle().fill(Color.gray.opacity(0.1))
+                if let url = APIClient.resolveURL(book.coverURL) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty: Color.gray.opacity(0.1)
+                        case .success(let image): image.resizable().scaledToFill()
+                        case .failure: Color.gray.opacity(0.2)
+                        @unknown default: Color.gray.opacity(0.2)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
             .aspectRatio(4/3, contentMode: .fit)

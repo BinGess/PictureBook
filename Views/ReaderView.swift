@@ -48,9 +48,20 @@ struct ReaderView: View {
     @ViewBuilder
     private func pageView(_ page: PageModel) -> some View {
         ZStack {
-            Rectangle().fill(Color.gray.opacity(0.1))
-            Text("第 \(page.index + 1) 页")
-                .font(.largeTitle)
+            if let img = page.imageURL, let url = APIClient.resolveURL(img) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty: Color.gray.opacity(0.1)
+                    case .success(let image): image.resizable().scaledToFit()
+                    case .failure: Color.gray.opacity(0.2)
+                    @unknown default: Color.gray.opacity(0.2)
+                    }
+                }
+            } else {
+                Rectangle().fill(Color.gray.opacity(0.1))
+                Text("第 \(page.index + 1) 页")
+                    .font(.largeTitle)
+            }
         }
         .ignoresSafeArea()
     }

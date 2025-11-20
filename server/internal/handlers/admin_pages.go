@@ -54,10 +54,15 @@ func (h *AdminPages) CreateBook(c *gin.Context) {
         Tags: tags, PopularityScore: pop, ThemeKeywords: themes, IsEditorPick: c.PostForm("isEditorPick") == "on", Status: "published", Pages: []models.Page{},
     }
     b.CategoryID = c.PostForm("category_id")
-    if b.CategoryID == "" { c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "missing_category"}); return }
+    if b.CategoryID == "" {
+        cats, _ := h.content.ListCategories()
+        c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "missing_category", "categories": cats})
+        return
+    }
     picks := h.content.ListEditorPicks()
     if b.IsEditorPick && len(picks) >= 5 {
-        c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "limit"})
+        cats, _ := h.content.ListCategories()
+        c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "limit", "categories": cats})
         return
     }
     h.content.AddBook(b)

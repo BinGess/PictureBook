@@ -21,6 +21,9 @@ func main() {
     _ = os.MkdirAll(filepath.Clean(up), 0755)
     r.Static("/assets", up)
     r.Static("/static", "web/static")
+    dbp := os.Getenv("SQLITE_PATH")
+    if dbp == "" { dbp = "/app/data/picturebook.db" }
+    _ = os.MkdirAll(filepath.Dir(filepath.Clean(dbp)), 0755)
     r.LoadHTMLGlob("web/admin/*.html")
     pub := handlers.NewPublicHandler(content)
     v1 := r.Group("/v1")

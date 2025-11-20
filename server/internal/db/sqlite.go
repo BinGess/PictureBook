@@ -9,7 +9,7 @@ import (
 
 func sqlitePath() string {
     p := os.Getenv("SQLITE_PATH")
-    if p == "" { p = "/app/data/picturebook.db" }
+    if p == "" { p = "./data/picturebook.db" }
     return p
 }
 

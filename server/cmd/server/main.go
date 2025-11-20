@@ -17,12 +17,12 @@ func main() {
     r.Use(middleware.CORS(allowed))
     r.GET("/healthz", func(c *gin.Context) { c.String(200, "ok") })
     up := os.Getenv("UPLOADS_DIR")
-    if up == "" { up = "/app/uploads" }
+    if up == "" { up = "./uploads" }
     _ = os.MkdirAll(filepath.Clean(up), 0755)
     r.Static("/assets", up)
     r.Static("/static", "web/static")
     dbp := os.Getenv("SQLITE_PATH")
-    if dbp == "" { dbp = "/app/data/picturebook.db" }
+    if dbp == "" { dbp = "./data/picturebook.db" }
     _ = os.MkdirAll(filepath.Dir(filepath.Clean(dbp)), 0755)
     r.LoadHTMLGlob("web/admin/*.html")
     pub := handlers.NewPublicHandler(content)

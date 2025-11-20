@@ -35,7 +35,7 @@ func (h *AdminPages) BooksList(c *gin.Context) {
     sort := c.DefaultQuery("sort", "popular")
     q := c.Query("q")
     items, more := h.content.ListBooksAdmin(sort, page, size, q)
-    c.HTML(http.StatusOK, "books_list.html", gin.H{"items": items, "page": page, "page_size": size, "has_more": more, "sort": sort, "q": q})
+    c.HTML(http.StatusOK, "books_list.html", gin.H{"items": items, "page": page, "page_size": size, "has_more": more, "sort": sort, "q": q, "is_empty": len(items) == 0})
 }
 
 func (h *AdminPages) NewBookPage(c *gin.Context) {

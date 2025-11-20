@@ -15,10 +15,24 @@
   <div class="container">
     <div class="card">
       <h2 class="title">书籍列表</h2>
+      {{if .is_empty}}
+      <div class="card" style="border:1px dashed var(--border);">
+        <div class="row wrap" style="justify-content:space-between; align-items:center;">
+          <div>
+            <div class="title" style="margin:0; font-size:18px;">尚无书籍</div>
+            <div class="muted">请先创建分类，再新建书籍。</div>
+          </div>
+          <div class="row" style="gap:8px;">
+            <a href="/admin/categories" class="btn">分类管理</a>
+            <a href="/admin/books/new" class="btn primary">新建书籍</a>
+          </div>
+        </div>
+      </div>
+      {{end}}
       <div class="row wrap" style="margin-bottom:12px;">
         <div style="flex:1;">
           <div class="label">搜索（按标题或ID）</div>
-          <input id="q" class="input" placeholder="输入关键字...">
+          <input id="q" class="input" placeholder="输入关键字..." value="{{.q}}">
         </div>
         <div class="row" style="gap:8px;">
           <div>

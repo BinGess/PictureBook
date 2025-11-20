@@ -52,5 +52,9 @@ func EnsureSchema(db *sql.DB) error {
     }
     // add column category_id if not exists
     _, _ = db.Exec(`ALTER TABLE books ADD COLUMN category_id TEXT`)
+    // ensure default category exists
+    _, _ = db.Exec(`INSERT OR IGNORE INTO categories(id,name,description) VALUES('default','默认分类','系统初始化默认分类')`)
+    // backfill books with NULL/empty category_id
+    _, _ = db.Exec(`UPDATE books SET category_id='default' WHERE category_id IS NULL OR category_id=''`)
     return nil
 }

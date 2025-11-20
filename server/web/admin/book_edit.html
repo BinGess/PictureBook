@@ -16,6 +16,9 @@
   <div class="container">
     <div class="card">
       <h2 class="title">编辑书籍：{{.book.Title}}</h2>
+      {{if not .categories}}
+        <div class="muted" style="margin-bottom:12px;">尚未创建任何分类，请先 <a href="/admin/categories/new">创建分类</a>。</div>
+      {{end}}
       <div class="row wrap" style="margin-bottom:16px;">
         <div>
           {{if .book.CoverURL}}<img class="thumb" style="width:160px;height:120px;" src="{{.book.CoverURL}}" alt="cover">{{else}}<span class="muted">无封面</span>{{end}}

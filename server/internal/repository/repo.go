@@ -25,6 +25,12 @@ func (r *Repo) SeedIfEmpty(sample []models.Book) error {
 func (r *Repo) CreateBook(b models.Book) error {
     tags, _ := json.Marshal(b.Tags)
     themes, _ := json.Marshal(b.ThemeKeywords)
+    if b.CategoryID == "" {
+        return errors.New("missing_category")
+    }
+    var exists int
+    _ = r.DB.QueryRow("SELECT COUNT(1) FROM categories WHERE id=?", b.CategoryID).Scan(&exists)
+    if exists == 0 { return errors.New("missing_category") }
     _, err := r.DB.Exec(`INSERT INTO books(id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
         b.ID, b.Title, b.CoverURL, b.AgeMin, b.AgeMax, string(tags), b.PopularityScore, string(themes), boolToInt(b.IsEditorPick), b.Status, b.CategoryID,
     )

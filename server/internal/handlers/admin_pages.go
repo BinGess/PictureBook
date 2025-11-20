@@ -65,7 +65,11 @@ func (h *AdminPages) CreateBook(c *gin.Context) {
         c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "limit", "categories": cats})
         return
     }
-    h.content.AddBook(b)
+    if err := h.content.AddBook(b); err != nil {
+        cats, _ := h.content.ListCategories()
+        c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "db_error", "categories": cats})
+        return
+    }
     c.Redirect(http.StatusFound, "/admin/books")
 }
 

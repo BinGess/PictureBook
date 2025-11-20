@@ -40,8 +40,8 @@ func (s *ContentService) GetBook(id string) (models.Book, bool) {
     return b, ok
 }
 
-func (s *ContentService) AddBook(b models.Book) {
-    _ = s.repo.CreateBook(b)
+func (s *ContentService) AddBook(b models.Book) error {
+    return s.repo.CreateBook(b)
 }
 
 func (s *ContentService) AddPages(bookID string, fileURLs []string) []models.Page {

@@ -18,6 +18,7 @@
       {{if .error}}
         {{if eq .error "limit"}}<div class="muted" style="color:#dc2626;">编辑推荐已达上限</div>{{end}}
         {{if eq .error "missing_category"}}<div class="muted" style="color:#dc2626;">请选择分类后再创建图书</div>{{end}}
+        {{if eq .error "db_error"}}<div class="muted" style="color:#dc2626;">创建失败，请检查分类是否存在或数据库是否可写。</div>{{end}}
       {{end}}
       {{if not .categories}}
         <div class="muted" style="margin-bottom:12px;">尚未创建任何分类，请先 <a href="/admin/categories/new">创建分类</a>。</div>

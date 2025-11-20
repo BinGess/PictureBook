@@ -38,7 +38,10 @@ func (h *AdminPages) BooksList(c *gin.Context) {
     c.HTML(http.StatusOK, "books_list.html", gin.H{"items": items, "page": page, "page_size": size, "has_more": more, "sort": sort, "q": q})
 }
 
-func (h *AdminPages) NewBookPage(c *gin.Context) { c.HTML(http.StatusOK, "book_new.html", gin.H{}) }
+func (h *AdminPages) NewBookPage(c *gin.Context) {
+    cats, _ := h.content.ListCategories()
+    c.HTML(http.StatusOK, "book_new.html", gin.H{"categories": cats})
+}
 
 func (h *AdminPages) CreateBook(c *gin.Context) {
     ageMin := atoiDefault(c.PostForm("ageMin"), 3)
@@ -50,6 +53,8 @@ func (h *AdminPages) CreateBook(c *gin.Context) {
         ID: c.PostForm("id"), Title: c.PostForm("title"), CoverURL: c.PostForm("coverURL"), AgeMin: ageMin, AgeMax: ageMax,
         Tags: tags, PopularityScore: pop, ThemeKeywords: themes, IsEditorPick: c.PostForm("isEditorPick") == "on", Status: "published", Pages: []models.Page{},
     }
+    b.CategoryID = c.PostForm("category_id")
+    if b.CategoryID == "" { c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "missing_category"}); return }
     picks := h.content.ListEditorPicks()
     if b.IsEditorPick && len(picks) >= 5 {
         c.HTML(http.StatusBadRequest, "book_new.html", gin.H{"error": "limit"})
@@ -96,11 +101,39 @@ func (h *AdminPages) DeleteBook(c *gin.Context) {
     c.Redirect(http.StatusFound, "/admin/books")
 }
 
+// Category pages
+func (h *AdminPages) CategoriesList(c *gin.Context) {
+    cats, _ := h.content.ListCategories()
+    c.HTML(http.StatusOK, "categories_list.html", gin.H{"categories": cats})
+}
+
+func (h *AdminPages) NewCategoryPage(c *gin.Context) { c.HTML(http.StatusOK, "category_new.html", gin.H{}) }
+
+func (h *AdminPages) CreateCategory(c *gin.Context) {
+    id := c.PostForm("id")
+    name := c.PostForm("name")
+    desc := c.PostForm("description")
+    if id == "" || name == "" { c.HTML(http.StatusBadRequest, "category_new.html", gin.H{"error":"invalid"}); return }
+    _ = h.content.CreateCategory(models.Category{ID: id, Name: name, Description: desc})
+    c.Redirect(http.StatusFound, "/admin/categories")
+}
+
+func (h *AdminPages) DeleteCategory(c *gin.Context) {
+    id := c.Param("id")
+    if err := h.content.DeleteCategory(id); err != nil {
+        cats, _ := h.content.ListCategories()
+        c.HTML(http.StatusBadRequest, "categories_list.html", gin.H{"categories": cats, "error": "category_has_books"})
+        return
+    }
+    c.Redirect(http.StatusFound, "/admin/categories")
+}
+
 func (h *AdminPages) EditBookPage(c *gin.Context) {
     id := c.Param("id")
     b, ok := h.content.GetBook(id)
     if !ok { c.String(http.StatusNotFound, "not_found"); return }
-    c.HTML(http.StatusOK, "book_edit.html", gin.H{"book": b})
+    cats, _ := h.content.ListCategories()
+    c.HTML(http.StatusOK, "book_edit.html", gin.H{"book": b, "categories": cats})
 }
 
 func (h *AdminPages) EditBook(c *gin.Context) {
@@ -116,7 +149,8 @@ func (h *AdminPages) EditBook(c *gin.Context) {
     themes := splitCSV(c.PostForm("themeKeywords"))
     status := c.PostForm("status")
     if status == "" { status = b.Status }
-    nb := models.Book{ID: b.ID, Title: title, CoverURL: cover, AgeMin: ageMin, AgeMax: ageMax, Tags: tags, PopularityScore: pop, ThemeKeywords: themes, IsEditorPick: b.IsEditorPick, Pages: b.Pages, Status: status}
+    cat := c.PostForm("category_id")
+    nb := models.Book{ID: b.ID, Title: title, CoverURL: cover, AgeMin: ageMin, AgeMax: ageMax, Tags: tags, PopularityScore: pop, ThemeKeywords: themes, IsEditorPick: b.IsEditorPick, Pages: b.Pages, Status: status, CategoryID: cat}
     _ = h.content.UpdateBook(nb)
     c.Redirect(http.StatusFound, "/admin/books/"+id+"/pages")
 }

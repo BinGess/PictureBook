@@ -20,6 +20,11 @@
           <div>
             <div class="field"><div class="label">ID</div><input class="input" name="id" required></div>
             <div class="field"><div class="label">标题</div><input class="input" name="title" required></div>
+            <div class="field"><div class="label">分类</div>
+              <select class="input" name="category_id" required>
+                {{range .categories}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+              </select>
+            </div>
             <div class="field"><div class="label">封面URL</div><input class="input" id="coverURL" name="coverURL"></div>
             <div class="field row">
               <label class="btn small">上传封面<input id="coverFile" type="file" name="file" style="display:none"></label>

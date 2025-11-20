@@ -41,9 +41,16 @@ func EnsureSchema(db *sql.DB) error {
             duration_hint INTEGER,
             FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
         );`,
+        `CREATE TABLE IF NOT EXISTS categories (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT
+        );`,
     }
     for _, s := range stmts {
         if _, err := db.Exec(s); err != nil { return err }
     }
+    // add column category_id if not exists
+    _, _ = db.Exec(`ALTER TABLE books ADD COLUMN category_id TEXT`)
     return nil
 }

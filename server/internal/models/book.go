@@ -19,4 +19,6 @@ type Book struct {
     IsEditorPick    bool     `json:"isEditorPick"`
     Pages           []Page   `json:"pages"`
     Status          string   `json:"status"`
+    CategoryID      string   `json:"categoryId,omitempty"`
+    CategoryName    string   `json:"categoryName,omitempty"`
 }

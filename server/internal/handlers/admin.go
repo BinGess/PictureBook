@@ -21,6 +21,10 @@ func (h *AdminHandler) CreateBook(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_body"})
         return
     }
+    if b.CategoryID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "missing_category"})
+        return
+    }
     if b.IsEditorPick {
         picks := h.content.ListEditorPicks()
         if len(picks) >= 5 {

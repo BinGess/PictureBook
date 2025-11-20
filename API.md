@@ -22,11 +22,18 @@
   - `isEditorPick` 布尔
   - `pages` Page[]
   - `status` 字符串（如 `draft`/`published`）
+  - `categoryId` 字符串（分类 ID）
+  - `categoryName` 字符串（分类名称；公共接口响应中便于展示）
 - Page
   - `id` 字符串
   - `index` 数字
   - `imageURL` 字符串（通常为 `/assets/...`）
   - `duration_hint` 可选数字（JSON 字段为 `duration_hint`）
+
+- Category
+  - `id` 字符串
+  - `name` 字符串
+  - `description` 字符串
 
 ## 公共接口
 - GET `/v1/editor-picks`
@@ -49,14 +56,25 @@
   - 响应：
     ```json
     {
-      "items": [Book,...],
+      "items": [
+        {
+          "id": "book_a",
+          "title": "森林探险",
+          "coverURL": "/assets/cover_a.jpg",
+          "ageMin": 3,
+          "ageMax": 6,
+          "categoryId": "cat_story",
+          "categoryName": "故事"
+          // 其余字段略
+        }
+      ],
       "paging": {"page":1, "page_size":24, "has_more": true}
     }
     ```
 
 - GET `/v1/books/:id`
   - 描述：获取单本书详情
-  - 响应：`Book`
+  - 响应：`Book`（包含 `categoryId` 与 `categoryName`）
   - 异常：书不存在 → `404 {"error":"not_found"}`
 
 - GET `/v1/books/:id/recommendations`
@@ -65,6 +83,32 @@
     - `age` 整数，可选，默认为该书年龄区间中点
     - `limit` 整数，可选，默认 `5`
   - 响应：`Book[]`
+
+- GET `/v1/categories`
+  - 描述：获取所有分类
+  - 响应：`Category[]`
+  - 示例：
+    ```json
+    [
+      {"id":"cat_story","name":"故事","description":"适合3-6岁故事类"},
+      {"id":"cat_science","name":"科学","description":"科普类"}
+    ]
+    ```
+
+- GET `/v1/categories-with-books`
+  - 描述：获取分类及其下已发布书籍（分页需求可在未来扩展）
+  - 响应：`[{ id,name,description, books: Book[] }]`
+  - 示例：
+    ```json
+    [
+      {
+        "id":"cat_story",
+        "name":"故事",
+        "description":"适合3-6岁故事类",
+        "books":[{"id":"book_a","title":"森林探险","categoryId":"cat_story","categoryName":"故事"}]
+      }
+    ]
+    ```
 
 ## 管理与上传接口
 - POST `/v1/admin/upload`
@@ -77,12 +121,13 @@
 
 - POST `/v1/admin/books`
   - 描述：创建书籍（JSON）
-  - 请求体：`Book`（`status` 为空时服务端默认 `draft`）
+  - 请求体：`Book`（`status` 为空时服务端默认 `draft`；必须包含 `categoryId`）
   - 约束：若 `isEditorPick=true`，编辑推荐上限为 5 本
   - 响应：创建后的 `Book`
   - 异常：
     - 请求体格式错误 → `400 {"error":"invalid_body"}`
     - 超过编辑推荐上限 → `400 {"error":"editor_picks_limit"}`
+    - 缺少分类 → `400 {"error":"missing_category"}`
 
 - POST `/v1/admin/books/:id/pages/upload`
   - 描述：批量上传页图片并添加到指定书籍
@@ -97,6 +142,11 @@
   - 请求：`application/x-www-form-urlencoded`，键形如 `index[<pageID>]=<newIndex>`
   - 响应：302 重定向到 `/admin/books/:id/pages`
   - 异常：书不存在 → `404 {"error":"not_found"}`
+
+- 分类管理（后台页面）
+  - `GET /admin/categories`：分类列表
+  - `GET /admin/categories/new` → `POST /admin/categories/new`：新建分类（表单：`id`、`name`、`description`）
+  - `POST /admin/categories/:id/delete`：删除分类（有书籍时返回错误并提示）
 
 ## 后台登录（设置 Cookie）
 - GET `/admin/login`：返回登录页面
@@ -141,7 +191,8 @@
       "themeKeywords":["自然"],
       "isEditorPick":false,
       "pages":[],
-      "status":"published"
+      "status":"published",
+      "categoryId":"cat_story"
     }'
   ```
 - 上传封面：
@@ -153,6 +204,12 @@
   ```bash
   curl -s -X POST https://<host>/v1/admin/books/book_x/pages/upload \
     -F 'files=@/path/p1.jpg' -F 'files=@/path/p2.jpg'
+  ```
+
+- 获取分类与分类书籍聚合：
+  ```bash
+  curl -s https://<host>/v1/categories
+  curl -s https://<host>/v1/categories-with-books
   ```
 
 ## 备注

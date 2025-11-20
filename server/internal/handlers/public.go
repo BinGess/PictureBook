@@ -58,3 +58,16 @@ func (h *PublicHandler) Recommend(c *gin.Context) {
     rec := services.Recommend(b, all, age, limit)
     c.JSON(http.StatusOK, rec)
 }
+
+// Categories
+func (h *PublicHandler) Categories(c *gin.Context) {
+    cats, err := h.content.ListCategories()
+    if err != nil { c.JSON(http.StatusInternalServerError, gin.H{"error":"server_error"}); return }
+    c.JSON(http.StatusOK, cats)
+}
+
+func (h *PublicHandler) CategoriesWithBooks(c *gin.Context) {
+    res, err := h.content.ListCategoriesWithBooks()
+    if err != nil { c.JSON(http.StatusInternalServerError, gin.H{"error":"server_error"}); return }
+    c.JSON(http.StatusOK, res)
+}

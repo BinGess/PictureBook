@@ -28,6 +28,8 @@ func main() {
     v1.GET("/books", pub.Books)
     v1.GET("/books/:id", pub.Book)
     v1.GET("/books/:id/recommendations", pub.Recommend)
+    v1.GET("/categories", pub.Categories)
+    v1.GET("/categories-with-books", pub.CategoriesWithBooks)
     admin := handlers.NewAdminHandler(content)
     v1.POST("/admin/books", admin.CreateBook)
     v1.POST("/admin/upload", handlers.Upload)
@@ -47,6 +49,10 @@ func main() {
     adminGroup.POST("/books/:id/pages/reorder", pa.Reorder)
     adminGroup.POST("/books/:id/editor-pick", ap.ToggleEditorPick)
     adminGroup.POST("/books/:id/delete", ap.DeleteBook)
+    adminGroup.GET("/categories", ap.CategoriesList)
+    adminGroup.GET("/categories/new", ap.NewCategoryPage)
+    adminGroup.POST("/categories/new", ap.CreateCategory)
+    adminGroup.POST("/categories/:id/delete", ap.DeleteCategory)
     r.Run()
 }
 

@@ -84,3 +84,9 @@ func (s *ContentService) ListBooksAdmin(sort string, page, pageSize int, q strin
     if err != nil { return []models.Book{}, false }
     return items, more
 }
+
+// Categories
+func (s *ContentService) CreateCategory(c models.Category) error { return s.repo.CreateCategory(c) }
+func (s *ContentService) DeleteCategory(id string) error { return s.repo.DeleteCategory(id) }
+func (s *ContentService) ListCategories() ([]models.Category, error) { return s.repo.ListCategories() }
+func (s *ContentService) ListCategoriesWithBooks() ([]models.CategoryWithBooks, error) { return s.repo.ListCategoriesWithBooks() }

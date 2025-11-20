@@ -25,8 +25,8 @@ func (r *Repo) SeedIfEmpty(sample []models.Book) error {
 func (r *Repo) CreateBook(b models.Book) error {
     tags, _ := json.Marshal(b.Tags)
     themes, _ := json.Marshal(b.ThemeKeywords)
-    _, err := r.DB.Exec(`INSERT INTO books(id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status) VALUES(?,?,?,?,?,?,?,?,?,?)`,
-        b.ID, b.Title, b.CoverURL, b.AgeMin, b.AgeMax, string(tags), b.PopularityScore, string(themes), boolToInt(b.IsEditorPick), b.Status,
+    _, err := r.DB.Exec(`INSERT INTO books(id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+        b.ID, b.Title, b.CoverURL, b.AgeMin, b.AgeMax, string(tags), b.PopularityScore, string(themes), boolToInt(b.IsEditorPick), b.Status, b.CategoryID,
     )
     return err
 }
@@ -42,7 +42,7 @@ func (r *Repo) SetEditorPick(id string, v bool) error {
 }
 
 func (r *Repo) ListEditorPicks() ([]models.Book, error) {
-    rows, err := r.DB.Query("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status FROM books WHERE status='published' AND is_editor_pick=1 LIMIT 5")
+    rows, err := r.DB.Query("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id FROM books WHERE status='published' AND is_editor_pick=1 LIMIT 5")
     if err != nil { return nil, err }
     defer rows.Close()
     var res []models.Book
@@ -50,7 +50,7 @@ func (r *Repo) ListEditorPicks() ([]models.Book, error) {
         var b models.Book
         var tags, themes string
         var pick int
-        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status); err != nil { return nil, err }
+        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status, &b.CategoryID); err != nil { return nil, err }
         _ = json.Unmarshal([]byte(tags), &b.Tags)
         _ = json.Unmarshal([]byte(themes), &b.ThemeKeywords)
         b.IsEditorPick = pick == 1
@@ -60,8 +60,7 @@ func (r *Repo) ListEditorPicks() ([]models.Book, error) {
 }
 
 func (r *Repo) ListBooks(age int, sortBy string, page, pageSize int) ([]models.Book, bool, error) {
-    // Basic: order by popularity_score desc
-    rows, err := r.DB.Query("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status FROM books WHERE status='published' ORDER BY popularity_score DESC LIMIT ? OFFSET ?", pageSize, (page-1)*pageSize)
+    rows, err := r.DB.Query("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id FROM books WHERE status='published' ORDER BY popularity_score DESC LIMIT ? OFFSET ?", pageSize, (page-1)*pageSize)
     if err != nil { return nil, false, err }
     defer rows.Close()
     var res []models.Book
@@ -69,7 +68,7 @@ func (r *Repo) ListBooks(age int, sortBy string, page, pageSize int) ([]models.B
         var b models.Book
         var tags, themes string
         var pick int
-        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status); err != nil { return nil, false, err }
+        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status, &b.CategoryID); err != nil { return nil, false, err }
         _ = json.Unmarshal([]byte(tags), &b.Tags)
         _ = json.Unmarshal([]byte(themes), &b.ThemeKeywords)
         b.IsEditorPick = pick == 1
@@ -85,8 +84,8 @@ func (r *Repo) GetBook(id string) (models.Book, bool, error) {
     var b models.Book
     var tags, themes string
     var pick int
-    err := r.DB.QueryRow("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status FROM books WHERE id=? AND status='published'", id).
-        Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status)
+    err := r.DB.QueryRow("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id FROM books WHERE id=? AND status='published'", id).
+        Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status, &b.CategoryID)
     if err != nil { return models.Book{}, false, nil }
     _ = json.Unmarshal([]byte(tags), &b.Tags)
     _ = json.Unmarshal([]byte(themes), &b.ThemeKeywords)
@@ -132,14 +131,14 @@ func (r *Repo) DeleteBook(id string) error {
 func (r *Repo) UpdateBook(b models.Book) error {
     tags, _ := json.Marshal(b.Tags)
     themes, _ := json.Marshal(b.ThemeKeywords)
-    _, err := r.DB.Exec("UPDATE books SET title=?, cover_url=?, age_min=?, age_max=?, tags=?, popularity_score=?, theme_keywords=?, status=? WHERE id=?",
-        b.Title, b.CoverURL, b.AgeMin, b.AgeMax, string(tags), b.PopularityScore, string(themes), b.Status, b.ID,
+    _, err := r.DB.Exec("UPDATE books SET title=?, cover_url=?, age_min=?, age_max=?, tags=?, popularity_score=?, theme_keywords=?, status=?, category_id=? WHERE id=?",
+        b.Title, b.CoverURL, b.AgeMin, b.AgeMax, string(tags), b.PopularityScore, string(themes), b.Status, b.CategoryID, b.ID,
     )
     return err
 }
 
 func (r *Repo) ListBooksAdmin(sortBy string, page, pageSize int, q string) ([]models.Book, bool, error) {
-    base := "SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status FROM books"
+    base := "SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id FROM books"
     where := ""
     args := []any{}
     if q != "" {
@@ -159,7 +158,7 @@ func (r *Repo) ListBooksAdmin(sortBy string, page, pageSize int, q string) ([]mo
         var b models.Book
         var tags, themes string
         var pick int
-        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status); err != nil { return nil, false, err }
+        if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status, &b.CategoryID); err != nil { return nil, false, err }
         _ = json.Unmarshal([]byte(tags), &b.Tags)
         _ = json.Unmarshal([]byte(themes), &b.ThemeKeywords)
         b.IsEditorPick = pick == 1
@@ -173,6 +172,58 @@ func (r *Repo) ListBooksAdmin(sortBy string, page, pageSize int, q string) ([]mo
     }
     hasMore := page*pageSize < total
     return res, hasMore, nil
+}
+
+// Categories CRUD and aggregations
+func (r *Repo) CreateCategory(c models.Category) error {
+    _, err := r.DB.Exec("INSERT INTO categories(id,name,description) VALUES(?,?,?)", c.ID, c.Name, c.Description)
+    return err
+}
+
+func (r *Repo) DeleteCategory(id string) error {
+    var cnt int
+    if err := r.DB.QueryRow("SELECT COUNT(1) FROM books WHERE category_id=?", id).Scan(&cnt); err != nil { return err }
+    if cnt > 0 { return errors.New("category_has_books") }
+    _, err := r.DB.Exec("DELETE FROM categories WHERE id=?", id)
+    return err
+}
+
+func (r *Repo) ListCategories() ([]models.Category, error) {
+    rows, err := r.DB.Query("SELECT id,name,description FROM categories ORDER BY name ASC")
+    if err != nil { return nil, err }
+    defer rows.Close()
+    var res []models.Category
+    for rows.Next() {
+        var c models.Category
+        if err := rows.Scan(&c.ID, &c.Name, &c.Description); err != nil { return nil, err }
+        res = append(res, c)
+    }
+    return res, nil
+}
+
+func (r *Repo) ListCategoriesWithBooks() ([]models.CategoryWithBooks, error) {
+    cats, err := r.ListCategories()
+    if err != nil { return nil, err }
+    var out []models.CategoryWithBooks
+    for _, c := range cats {
+        rows, err := r.DB.Query("SELECT id,title,cover_url,age_min,age_max,tags,popularity_score,theme_keywords,is_editor_pick,status,category_id FROM books WHERE status='published' AND category_id=? ORDER BY popularity_score DESC", c.ID)
+        if err != nil { return nil, err }
+        var books []models.Book
+        for rows.Next() {
+            var b models.Book
+            var tags, themes string
+            var pick int
+            if err := rows.Scan(&b.ID, &b.Title, &b.CoverURL, &b.AgeMin, &b.AgeMax, &tags, &b.PopularityScore, &themes, &pick, &b.Status, &b.CategoryID); err != nil { rows.Close(); return nil, err }
+            _ = json.Unmarshal([]byte(tags), &b.Tags)
+            _ = json.Unmarshal([]byte(themes), &b.ThemeKeywords)
+            b.IsEditorPick = pick == 1
+            b.CategoryName = c.Name
+            books = append(books, b)
+        }
+        rows.Close()
+        out = append(out, models.CategoryWithBooks{ID: c.ID, Name: c.Name, Description: c.Description, Books: books})
+    }
+    return out, nil
 }
 
 func boolToInt(b bool) int { if b { return 1 } ; return 0 }

@@ -14,6 +14,9 @@
   <div class="container">
     <div class="card">
       <h2 class="title">分类列表</h2>
+      {{if .error}}
+        {{if eq .error "category_has_books"}}<div class="muted" style="color:#dc2626;">该分类下仍有书籍，无法删除。请先迁移书籍到其他分类。</div>{{end}}
+      {{end}}
       <table>
         <tr><th>ID</th><th>名称</th><th>描述</th><th>操作</th></tr>
         {{range .categories}}

@@ -15,14 +15,20 @@
   <div class="container">
     <div class="card">
       <h2 class="title">新建书籍</h2>
-      {{if .error}}<div class="muted" style="color:#dc2626;">编辑推荐已达上限</div>{{end}}
+      {{if .error}}
+        {{if eq .error "limit"}}<div class="muted" style="color:#dc2626;">编辑推荐已达上限</div>{{end}}
+        {{if eq .error "missing_category"}}<div class="muted" style="color:#dc2626;">请选择分类后再创建图书</div>{{end}}
+      {{end}}
+      {{if not .categories}}
+        <div class="muted" style="margin-bottom:12px;">尚未创建任何分类，请先 <a href="/admin/categories/new">创建分类</a>。</div>
+      {{end}}
       <form method="post" action="/admin/books/new">
         <div class="grid">
           <div>
             <div class="field"><div class="label">ID</div><input class="input" name="id" required></div>
             <div class="field"><div class="label">标题</div><input class="input" name="title" required></div>
             <div class="field"><div class="label">分类</div>
-              <select class="input" name="category_id" required>
+              <select class="input" name="category_id" required {{if not .categories}}disabled{{end}}>
                 {{range .categories}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
               </select>
             </div>
